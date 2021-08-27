@@ -1,0 +1,18 @@
+- Ferramentas para compilação
+sudo apt-get update
+sudo apt-get install build-essential
+sudo apt-get install g++ cmake
+sudo apt-get install binutils-gold
+
+- OpenGL
+sudo apt-get install freeglut3 freeglut3-dev
+sudo apt-get install mesa-common-dev
+sudo apt-get install libglew1.5-dev libglm-dev libglew-dev
+
+- Compilando no terminal
+g++ -o <nome_do_executavel> <codigo_cpp> -lglut -lGL -lGLU -lm
+g++ -o teste teste.cpp -lglut -lGL -lGLU -lm
+
+- Executando
+./teste
+
