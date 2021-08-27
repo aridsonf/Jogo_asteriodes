@@ -4,19 +4,19 @@
 
 GLint flag = 0;
 
+int ang = 0;
+
 void init(void);
 void display(void);
 void keyboard(unsigned char key, int x, int y);
 
 
-
-
 int main(int argc, char ** argv) {  
     glutInit(&argc, argv);
-    glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB);  
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);  
     glutInitWindowSize (650, 650);
     glutInitWindowPosition (400, 50);
-    glutCreateWindow ("Introducao");
+    glutCreateWindow ("ASTEROIDS");
     init();
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
@@ -26,32 +26,53 @@ int main(int argc, char ** argv) {
 
 void init(void) {  
     glClearColor(1.0, 1.0, 1.0, 1.0);
-    glOrtho (0, 700, 0, 700, -1 ,1);
+    glOrtho (0, 650, 0, 650, -1 ,1);
 }
 
 void display(void) {  
-    int i;
     glClear(GL_COLOR_BUFFER_BIT);
-
-
-    glColor3f (1.0, 0.0, 0.7);
-    glBegin(GL_LINE_LOOP);  
-        glVertex2i(30, 170);
-        glVertex2i(40, 200); 
-        glVertex2i(50, 170); 
-        glVertex2i(40, 175);
-    glEnd();  
  
+    glPushMatrix();
     
-    glFlush(); 
+
+        glTranslatef (325.0, 325.0, 0.0);
+    	glRotatef ((GLfloat) ang, 0.0, 0.0, 1.0);
+    	glTranslatef (-325.0, -325.0, 0.0);
+    	glColor3f (1.0, 0.0, 0.7);
+        glBegin(GL_LINE_LOOP);  
+        glVertex3i(315, 310, 0);
+        glVertex3i(325, 340, 0); 
+        glVertex3i(335, 310, 0); 
+        glVertex3i(325, 315, 0);
+        glEnd();   
+
+    glPopMatrix();
+    
+
+    glutSwapBuffers();
 }
 
 
 void keyboard(unsigned char key, int x, int y) {
     switch (key)  { 
-        case 27: exit(0); break;
+        case 'd':
+        	ang = (ang - 5) % 360;
+        	glutPostRedisplay();
+        	break;
+        case 'D':
+        	ang = (ang - 5) % 360;
+        	glutPostRedisplay();
+        	break;
+        case 'a':
+        	ang = (ang + 5) % 360;
+        	glutPostRedisplay();
+        	break;
+        case 'A':
+        	ang = (ang + 5) % 360;
+        	glutPostRedisplay();
+        	break;
+        case 27: 
+        	exit(0); 
+        	break;
     }
 }
-
-
-
