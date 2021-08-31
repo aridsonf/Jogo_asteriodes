@@ -1,9 +1,11 @@
+//Bibliotecas e pavalras-chave
 #include <GL/glut.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #define PI 3.141592654
 
+//Variaveis
 GLint flag = 0;
 
 int andar = 0, andarv = 0, andarx = 0, andary = 0;
@@ -14,6 +16,8 @@ void init(void);
 void display(void);
 void keyboard(unsigned char key, int x, int y);
 void tiro(int passo);
+void drawShip(void);
+void drawEnemy(int x, int y, int lado);
 
 /*
 struct Bullet {
@@ -65,15 +69,8 @@ void DrawShip(void) {
 }
 
 */
-
-
-void init(void) {  
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    glOrtho (0, 650, 0, 650, -1 ,1);
-}
-
-void display(void) {  
-    glClear(GL_COLOR_BUFFER_BIT);
+//Funcao que desenha nave e seu tiro
+void drawShip(void){
     glPushMatrix();
     
         glTranslatef(325.0, 325.0, 0.0);
@@ -88,8 +85,6 @@ void display(void) {
 	glVertex3i(325, 315, 0);
 	glEnd();   
     glPopMatrix();
-    
-    
     
     
     if (andar == 1){
@@ -114,10 +109,9 @@ void display(void) {
 	    }
 	    
    	}
-    glutSwapBuffers();
-
 }
-    
+
+//Funcao da animacao do tiro
 void tiro(int passo){
 	if (andar == 1){
 		proj = proj + 5;
@@ -130,6 +124,33 @@ void tiro(int passo){
 	}
 }
 
+//Funcao que desenha inimigo
+void drawEnemy(int x, int y, int lado){
+
+	glColor3f(0.5, 1.0, 0.0);
+	glBegin(GL_TRIANGLES);  
+	glVertex3i(x, y, 0);
+	glVertex3i(x - (lado/2), y - ((sqrt(3)/2)*lado), 0); 
+	glVertex3i(x + (lado/2), y - ((sqrt(3)/2)*lado), 0); 
+	glEnd();   
+
+}
+
+void init(void) {  
+    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glOrtho (0, 650, 0, 650, -1 ,1);
+}
+
+//Janela do jogo
+void display(void) {  
+    glClear(GL_COLOR_BUFFER_BIT);
+    drawEnemy(45, 60, 50);
+    drawShip();
+    glutSwapBuffers();
+
+}
+    
+//Definicao das teclas utilizadas no jogo
 void keyboard(unsigned char key, int x, int y) {
     switch (key)  { 
         case 'd':
