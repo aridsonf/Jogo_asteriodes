@@ -10,14 +10,15 @@
 
 //Variaveis
 GLint flag = 0;
+GLint direcao = 1;
 
-int status_Enemy = VIVO, xe = 45, ye = 60, tame = 50; 
-int status_Nave = VIVO;
-int andar = 0;
+static int xe = 45, ye = 60, tame = 50; 
+int status_Nave = VIVO, status_Enemy = VIVO;
+int andar = 0, fim = 0;
 int ang, ang_g = ang + 90, proj = 0;
 static int x2 = 325, y2 = 350, xr, yr;
 
-
+void movEnemy(int passo);
 void init(void);
 void display(void);
 void keyboard(unsigned char key, int x, int y);
@@ -93,6 +94,21 @@ void drawEnemy(int x, int y, int lado){
 
 }
 
+//Movimentacao do inimigo
+void movEnemy(int passo) {
+        if (direcao == 1) {
+            ye += passo;
+            if (ye == 630)
+                direcao = 0;
+        } else {
+            ye -= passo;
+            if (ye == -90)
+                direcao = 1;
+        }
+        if (!fim)glutPostRedisplay();
+        glutTimerFunc(10, movEnemy, 1);
+    }
+
 //Funcao para desenha a borda do cenario
 void drawBorda(){
 	glColor3f(0.0, 0.0, 0.0);
@@ -143,7 +159,6 @@ void idle(void){
 		}else{
 		}
 	}
-
 }
 
 //Definicao das teclas utilizadas no jogo
@@ -191,6 +206,7 @@ int main(int argc, char ** argv) {
     glutIdleFunc(idle);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
+    glutTimerFunc(10, movEnemy, 1);
     glutMainLoop();
     return 0; 
 }
