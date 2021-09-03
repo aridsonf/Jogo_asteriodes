@@ -117,8 +117,8 @@ void movEnemy(int passo) {
             if (ye == 630){
                 direcao_y = 0;
                 if(direcao_x == 1){
-                	xe += 5;
-                }else{xe-=5;}
+                	xe += rand() % 10;
+                }else{xe-=rand() % 10;}
                 }
            
         } else if (direcao_y == 0) {
@@ -126,28 +126,28 @@ void movEnemy(int passo) {
             if (ye == 20){
                 direcao_y = 1;
                 if(direcao_x == 1){
-                	xe += 5;
-                }else{xe-=5;}}
+                	xe += rand() % 10;
+                }else{xe-=rand() % 10;}}
         }
         if (direcao_x == 1) {
             xe += passo;
             if (xe == 630){
                 direcao_x = 0;
                 if(direcao_y == 1){
-                	ye += 5;
-                }else{ye-=5;}}
+                	ye += rand() % 10;
+                }else{ye-=rand() % 10;}}
            
         } else if (direcao_x == 0) {
             xe -= passo;
             if (xe == 20){
                 direcao_x = 1;
                 if(direcao_y == 1){
-                	ye += 5;
-                }else{ye-=5;}}
+                	ye += rand() % 10;
+                }else{ye-=rand() % 10;}}
         }
         
         if (!fim)glutPostRedisplay();
-        glutTimerFunc(10, movEnemy, 1);
+        glutTimerFunc(5, movEnemy, 1);
     }
 
 //Funcao que desenha a borda do cenario
@@ -171,7 +171,7 @@ void init(void) {
 void display(void) { 
     srand(time(0));
     //Cria uma posicao aleatoria para o inimigo
-    while(xe >= 305 && xe <= 345 && ye >= 305 && ye <= 345){
+    while(xe >= 260 && xe <= 390 && ye >= 260 && ye <= 390){
 	    xe = (rand() % (630 - 20)) + 20;
 	    ye = (rand() % (630 - 20)) + 20;
     }
@@ -202,19 +202,34 @@ void idle(void){
 			if(ye <= 395 && ye >= 255){
 				status_Ship = MORTO;
 				exit(0);}
-		//Colisao entre tiro e inimigo
-		}else if((x2 - xe <= 40) && (y2 - ye <= 40)){
-			//Caso o enimigo esteja no segundo quadrante
-			if(xe >= 280 && ye >= 280){
-				if((xe - x2 <= 40) && (ye - y2 <= 40)){
-					status_Enemy = MORTO;
-					proj = 0;
-				}
-			}else{
-			status_Enemy = MORTO;
-			proj = 0;
-		}
-		}else{
+		//Colisao entre tiro e inimigo para o primeiro quadrante
+		}else if(xe <= 325 && ye >= 325){
+			if((x2 - xe <= 40) && (ye - y2 <= 40)){
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				status_Enemy = MORTO;
+				proj = 0;
+			}else{}
+		//Para o segundo quadrante
+		}else if(xe >= 325 && ye >= 325){
+			if((xe - x2 <= 40) && (ye - y2 <= 40)){
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				status_Enemy = MORTO;
+				proj = 0;
+			}else{}
+		//Para o terceiro quadrante
+		}else if(xe <= 325 && ye <= 325){
+			if((x2 - xe <= 40) && (y2 - ye <= 40)){
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				status_Enemy = MORTO;
+				proj = 0;
+			}else{}
+		//Para o quarto quadrante
+		}else if(xe >= 325 && ye <= 325){
+			if((xe - x2 <= 40) && (y2 - ye <= 40)){
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				status_Enemy = MORTO;
+				proj = 0;
+			}else{}
 		}
 	}
 }
