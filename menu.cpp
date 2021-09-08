@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <string>
+#include <iostream>
+
+using namespace std;
+
 #define SIM 1
 #define NAO 0
 
@@ -11,9 +16,63 @@ void keyboard(unsigned char key, int x, int y);
 void mouse(int button, int state, int x, int y);
 void desenhaTextoBmp(int x, int y, void *fonte, char *string);
 void reshape (int w, int h);
+void drawBorda(void);
 
 char txt[99];
 int manual = NAO;
+
+int w, h;
+
+GLuint texid1;
+//Para maiores informações sobre a estrutura de um arquivo bmp, ver "http://easygrid.ic.uff.br/~aconci/curso/bmp.pdf"
+char *carrega_bmp(string name) {
+    FILE *f = fopen(name.c_str(), "rb");
+    if (f == NULL) {
+        cout << "Erro ao carregar o arquivo %s !" << name;
+        exit(1);
+    }
+    int of;
+    fseek(f, 10, SEEK_SET);
+    fread(&of, sizeof (int), 1, f);
+    fseek(f, 4, SEEK_CUR);
+    fread(&w, sizeof (int), 1, f);
+    fread(&h, sizeof (int), 1, f);
+
+    fseek(f, of, SEEK_SET);
+
+    int by = ((w * 3 + 3) / 4) * 4 - (w * 3 % 4);
+    char *tmp_m = (char *) malloc(sizeof (char) * by * h);
+    char *m = (char *) malloc(sizeof (char) * w * h * 3);
+    fread(tmp_m, sizeof (char) * by * h, 1, f);
+    int x, y, i;
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            for (i = 0; i < 3; i++) {
+                m[3 * (w * y + x) + i] = tmp_m[3 * (w * y + x) + (2 - i)];
+            }
+        }
+    }
+    free(tmp_m);
+    return m;
+}
+//fim textura
+
+GLuint carregaTextura(string path) {
+    char *wa = carrega_bmp(path);
+    GLuint texid;
+    glGenTextures(1, &texid);
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, wa);
+    free(wa);
+    return texid;
+}
+
+void colocaImagem() {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texid1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
 
 // Largura e altura da janela
 GLfloat windowWidth = 400;
@@ -28,6 +87,7 @@ int main(int argc, char ** argv) {
     glutInitWindowSize (windowWidth, windowHeight);
     glutInitWindowPosition (500, 100);
     glutCreateWindow("ASTEROIDS");
+    texid1 = carregaTextura("ceu2.bmp");
     init();
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
@@ -45,12 +105,47 @@ void desenhaTextoBmp(int x, int y, void *fonte, char *string){
   glRasterPos2f(x, y);
   while(*string) 
     glutBitmapCharacter(fonte, *string++);
+    
 }
+void drawBorda(void){
+
+glMatrixMode(GL_PROJECTION);
+glPushMatrix();
+glLoadIdentity();
+glMatrixMode(GL_MODELVIEW);
+glPushMatrix();
+glLoadIdentity();
+
+//glPolygonMode(GL_BACK, GL_FILL);
+colocaImagem();
+glTranslatef(0.0, 0.0, -1.0);
+glBegin(GL_QUADS);
+
+    glTexCoord2f(0,0);
+    glVertex2f(-1.0f, -1.0f);
+    glTexCoord2f(1,0);
+    glVertex2f(1.0f, -1.0f);
+    glTexCoord2f(1,1);
+    glVertex2f(1.0f, 1.0f);
+    glTexCoord2f(0,1);
+    glVertex2f(-1.0f, 1.0f);
+glEnd();
+
+glPopMatrix();
+glMatrixMode(GL_PROJECTION);
+glPopMatrix();
+glMatrixMode(GL_MODELVIEW);
+}
+
 
 void display(void) {  
 
     glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(0.0, 0.0, 0.0);
+    glEnable(GL_TEXTURE_2D);
+    drawBorda();
+    glDisable(GL_TEXTURE_2D);
+    glColor3f(1.0, 1.0, 1.0);
+    glDisable(GL_LIGHTING);
     if(manual == NAO){
 	    strcpy(txt, "ASTEROIDS");
         	desenhaTextoBmp(130 * correcaowid, 380 * correcaohei, GLUT_BITMAP_TIMES_ROMAN_24, txt);
@@ -89,7 +184,9 @@ void display(void) {
     strcpy(txt, "VOLTAR");
         	desenhaTextoBmp(145 * correcaowid, 80 * correcaohei, GLUT_BITMAP_TIMES_ROMAN_24, txt); 
     }
+
     glFlush();
+    
     glutSwapBuffers();
 }
 
@@ -122,7 +219,7 @@ void mouse(int button, int state, int x, int y){
 	if (state == GLUT_DOWN) {
 	if(manual == NAO){
         	if( (x  > (160 * correcaowid) && x < (240 * correcaowid)) && (y  < (280 * correcaohei) && y > (260 * correcaohei)) ) {
-        	    system("g++ -o game game.c -lglut -lGL -lGLU -lm");
+        	    system("g++ -o game game.cpp -lglut -lGL -lGLU -lm");
         	    system("./game"); 
         	    break;
 

@@ -4,6 +4,11 @@
 #include <stdio.h>
 #include <math.h>
 #include<time.h>
+#include <string>
+#include <iostream>
+
+using namespace std;
+
 #define PI 3.141592654
 #define VIVO 1
 #define MORTO 0
@@ -30,10 +35,65 @@ void drawBorda(void);
 void drawBase(void);
 void idle(void);
 
+//textura
+int w, h;
+
+GLuint texid1;
+//Para maiores informações sobre a estrutura de um arquivo bmp, ver "http://easygrid.ic.uff.br/~aconci/curso/bmp.pdf"
+char *carrega_bmp(string name) {
+    FILE *f = fopen(name.c_str(), "rb");
+    if (f == NULL) {
+        cout << "Erro ao carregar o arquivo %s !" << name;
+        exit(1);
+    }
+    int of;
+    fseek(f, 10, SEEK_SET);
+    fread(&of, sizeof (int), 1, f);
+    fseek(f, 4, SEEK_CUR);
+    fread(&w, sizeof (int), 1, f);
+    fread(&h, sizeof (int), 1, f);
+
+    fseek(f, of, SEEK_SET);
+
+    int by = ((w * 3 + 3) / 4) * 4 - (w * 3 % 4);
+    char *tmp_m = (char *) malloc(sizeof (char) * by * h);
+    char *m = (char *) malloc(sizeof (char) * w * h * 3);
+    fread(tmp_m, sizeof (char) * by * h, 1, f);
+    int x, y, i;
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            for (i = 0; i < 3; i++) {
+                m[3 * (w * y + x) + i] = tmp_m[3 * (w * y + x) + (2 - i)];
+            }
+        }
+    }
+    free(tmp_m);
+    return m;
+}
+
+GLuint carregaTextura(string path) {
+    char *wa = carrega_bmp(path);
+    GLuint texid;
+    glGenTextures(1, &texid);
+    glBindTexture(GL_TEXTURE_2D, texid);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, wa);
+    free(wa);
+    return texid;
+}
+
+void colocaImagem() {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texid1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+}
+//fim textura
+
 //Funcao que desenha o limite de onde a nave pode ser atingida
 void drawBase(void){
-	glColor3f(0.0, 0.0, 1.0);
+	glLineWidth(2);
 	glBegin(GL_LINE_LOOP);   
+	glColor3f(0.0, 0.0, 1.0);
 	glVertex3i(375, 375, 0);
 	glVertex3i(375, 275, 0);
 	glVertex3i(275, 275, 0);
@@ -46,13 +106,12 @@ void drawShip(void){
     //Nave
     if(status_Ship == VIVO){
     	glPushMatrix();
-    
         	glTranslatef(325.0, 325.0, 0.0);
     		glRotatef((GLfloat) ang, 0.0, 0.0, 1.0);
     		glTranslatef(-325.0, -325.0, 0.0);
-
-		glColor3f(1.0, 0.0, 0.7);
+    		glLineWidth(3);
 		glBegin(GL_LINE_LOOP);  
+		glColor3f(1.0, 0.0, 0.7);
 		glVertex3i(315, 310, 0);
 		glVertex3i(325, 340, 0); 
 		glVertex3i(335, 310, 0); 
@@ -66,9 +125,9 @@ void drawShip(void){
 		    	glTranslatef(325.0, 325.0, 0.0);
 		    	glRotatef((GLfloat) ang, 0.0, 0.0, 1.0);
 		    	glTranslatef(-325.0, -325.0, 0.0);
-		    	glColor3f(0.0, 0.0, 0.0);
-		    	glLineWidth(3);
+		    	glLineWidth(5);
 		    	glBegin(GL_LINES);
+		    	glColor3f(1.0, 0.5, 0.5);
 		    	glVertex3i (325, 350 + proj, 0);
 		    	glVertex3i (325, 340 + proj, 0);
 		    	glEnd ();
@@ -100,11 +159,13 @@ void tiro(int passo){
 //Funcao que desenha inimigo
 void drawEnemy(int x, int y, int lado){
 	if (status_Enemy == VIVO){
+		glPushMatrix();
 		glPointSize(40);
-		glColor3f(0.5, 1.0, 0.0);
 		glBegin(GL_POINTS);  
+		glColor3f(0.0, 1.0, 0.0);
 		glVertex3i(x, y, 0); 
 		glEnd();   
+		glPopMatrix();
 	}else{
 	}
 
@@ -152,34 +213,61 @@ void movEnemy(int passo) {
 
 //Funcao que desenha a borda do cenario
 void drawBorda(void){
-	glColor3f(0.0, 0.0, 0.0);
-	glBegin(GL_LINE_LOOP);   
-	glVertex3i(0, 0, 0);
-	glVertex3i(0, 650, 0);
-	glVertex3i(650, 650, 0);
-	glVertex3i(650, 0, 0);
-	glEnd();  
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	colocaImagem();
+	glTranslatef(0.0, 0.0, -1.0);
+	glBegin(GL_QUADS);
+	    glColor3f(0.0, 0.0, 0.5);
+	    glTexCoord2f(0,0);
+	    glVertex2f(-1.0f, -1.0f);
+	    glTexCoord2f(1,0);
+	    glVertex2f(1.0f, -1.0f);
+	    glTexCoord2f(1,1);
+	    glVertex2f(1.0f, 1.0f);
+	    glTexCoord2f(0,1);
+	    glVertex2f(-1.0f, 1.0f);
+	glEnd();
+
+	glPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
 }
 
 
 void init(void) {  
-    glClearColor(1.0, 1.0, 1.0, 1.0);
+    glClearColor(1.0, 0.0, 0.0, 1.0);
     glOrtho (0, 650, 0, 650, -1 ,1);
 }
 
 //Janela do jogo
 void display(void) { 
+
+
+
     srand(time(0));
     //Cria uma posicao aleatoria para o inimigo
     while(xe >= 260 && xe <= 390 && ye >= 260 && ye <= 390){
 	    xe = (rand() % (630 - 20)) + 20;
 	    ye = (rand() % (630 - 20)) + 20;
     }
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //glDisable(GL_POLYGON_STIPPLE);
+    //glDisable( GL_TEXTURE_2D );
     drawBorda();
+    glDisable( GL_TEXTURE_2D );
+    glDisable(GL_LIGHTING);
+    //glClear(GL_COLOR_BUFFER_BIT);
     drawBase();
     drawShip();
     drawEnemy(xe, ye, tame = 50);
+
     glutSwapBuffers();
 
 }
@@ -205,28 +293,28 @@ void idle(void){
 		//Colisao entre tiro e inimigo para o primeiro quadrante
 		}else if(xe <= 325 && ye >= 325){
 			if((x2 - xe <= 40) && (ye - y2 <= 40)){
-				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d\n", xe,ye,x2,y2);
 				status_Enemy = MORTO;
 				proj = 0;
 			}else{}
 		//Para o segundo quadrante
 		}else if(xe >= 325 && ye >= 325){
 			if((xe - x2 <= 40) && (ye - y2 <= 40)){
-				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d\n", xe,ye,x2,y2);
 				status_Enemy = MORTO;
 				proj = 0;
 			}else{}
 		//Para o terceiro quadrante
 		}else if(xe <= 325 && ye <= 325){
 			if((x2 - xe <= 40) && (y2 - ye <= 40)){
-				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d\n", xe,ye,x2,y2);
 				status_Enemy = MORTO;
 				proj = 0;
 			}else{}
 		//Para o quarto quadrante
 		}else if(xe >= 325 && ye <= 325){
 			if((xe - x2 <= 40) && (y2 - ye <= 40)){
-				printf("xe = %d, ye = %d, x2 = %d, y2 = %d", xe,ye,x2,y2);
+				printf("xe = %d, ye = %d, x2 = %d, y2 = %d\n", xe,ye,x2,y2);
 				status_Enemy = MORTO;
 				proj = 0;
 			}else{}
@@ -275,7 +363,9 @@ int main(int argc, char ** argv) {
     glutInitWindowSize (650, 650);
     glutInitWindowPosition (400, 50);
     glutCreateWindow ("ASTEROIDS");
+
     init();
+    texid1 = carregaTextura("ceu4.bmp");
     glutIdleFunc(idle);
     glutDisplayFunc(display);
     glutKeyboardFunc(keyboard);
